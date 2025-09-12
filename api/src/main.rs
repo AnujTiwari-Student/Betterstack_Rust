@@ -3,7 +3,7 @@ use std::io::Error;
 use poem::{get, post, handler, listener::TcpListener, web::Path, web::Json, Route, Server};
 
 use crate::{request_input::CreateWebsiteInput, request_output::CreateWebsiteOutput};
-use store::Store;
+use store::store::Store;
 pub mod request_input;
 pub mod request_output;
 
@@ -17,7 +17,7 @@ fn get_website(Path(website_id): Path<String>) -> String {
 fn create_website(Json(data): Json<CreateWebsiteInput>) -> Json<CreateWebsiteOutput> {
     let url = data.url;
     println!("Creating website for url: {}", url);
-    let s = Store{};
+    let s = Store::default();
     let id =s.create_website();
     let response = CreateWebsiteOutput { 
         id
