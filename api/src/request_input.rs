@@ -4,3 +4,15 @@ use serde::{Deserialize, Serialize};
 pub struct CreateWebsiteInput {
     pub url: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct CreateUserInput {
+    pub username: String,
+    pub password: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct LoginUserInput {
+    pub username: String,
+    pub password: String,
+}

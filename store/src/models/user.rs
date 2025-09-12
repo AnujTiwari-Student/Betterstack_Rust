@@ -5,14 +5,23 @@ use uuid::Uuid;
 #[derive(Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::users)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct User{
+pub struct User {
     pub id: String,
     pub username: String,
     pub password: String,
 }
 
+pub struct SigninResult {
+    pub success: bool,
+    pub id: Option<String>,
+}
+
 impl Store {
-    pub fn signup_user(&mut self, username: String, password: String) -> Result<String, diesel::result::Error>{
+    pub fn signup_user(
+        &mut self,
+        username: String,
+        password: String,
+    ) -> Result<String, diesel::result::Error> {
         let u: User = User {
             id: Uuid::new_v4().to_string(),
             username: username,
@@ -27,15 +36,18 @@ impl Store {
         Ok(result.id.to_string())
     }
 
-    pub fn signin_user(&mut self, username: String, password: String) -> Result<bool, diesel::result::Error>{
-
+    pub fn signin_user(
+        &mut self,
+        username: String,
+        password: String,
+    ) -> Result<bool, diesel::result::Error> {
         let user = users::table
             .filter(users::username.eq(username))
             .select(User::as_select())
             .first(&mut self.conn)?;
 
         if user.password != password {
-            return Ok(false)
+            return Ok(false);
         }
 
         Ok(true)

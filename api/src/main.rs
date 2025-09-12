@@ -2,7 +2,9 @@ use std::io::Error;
 
 use poem::{get, post, handler, listener::TcpListener, web::Path, web::Json, Route, Server};
 
-use crate::{request_input::CreateWebsiteInput, request_output::CreateWebsiteOutput};
+
+use crate::{request_input::{CreateWebsiteInput, LoginUserInput, CreateUserInput}, request_output::{CreateWebsiteOutput, CreateUserOutput, LoginUserOutput}};
+
 use store::store::Store;
 pub mod request_input;
 pub mod request_output;
@@ -10,6 +12,28 @@ pub mod request_output;
 #[handler]
 fn get_website(Path(website_id): Path<String>) -> String {
     format!("website: {}", website_id)
+}
+
+#[handler]
+fn signin_user(Json(data): Json<LoginUserInput>) -> Json<LoginUserOutput> {
+    println!("Signing in user: {}", data.username);
+    let mut s = Store::default().unwrap();
+    let exists = s.signin_user(data.username, data.password).unwrap();
+    let response = LoginUserOutput { 
+        jwt: String::from("jwt")
+    };
+    Json(response)
+}
+
+#[handler]
+fn signup_user(Json(data): Json<CreateUserInput>) -> Json<CreateUserOutput> {
+    println!("Signing up user: {}", data.username);
+    let mut s = Store::default().unwrap();
+    let user_id = s.signup_user(data.username, data.password).unwrap();
+    let response = CreateUserOutput { 
+        id: user_id
+    };
+    Json(response)
 }
 
 
