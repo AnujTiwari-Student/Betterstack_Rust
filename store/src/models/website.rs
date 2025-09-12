@@ -34,7 +34,16 @@ impl Store {
 
     }
 
-    pub fn get_website(&mut self) -> String{
-        String::from("1")
+    pub fn get_website(&mut self, id: String) -> Result<Website, diesel::result::Error>{
+        let website = websites::table
+            .filter(websites::id.eq(id))
+            .select(Website::as_select())
+            .first(&mut self.conn)?;
+
+        if !website.id.is_empty(){
+            return Err(diesel::result::Error::NotFound)
+        }
+
+        Ok(website)        
     }
 }

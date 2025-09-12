@@ -15,12 +15,11 @@ fn get_website(Path(website_id): Path<String>) -> String {
 
 #[handler]
 fn create_website(Json(data): Json<CreateWebsiteInput>) -> Json<CreateWebsiteOutput> {
-    let url = data.url;
-    println!("Creating website for url: {}", url);
-    let s = Store::default();
-    let id =s.create_website();
+    println!("Creating website for url: {}", data.url);
+    let mut s = Store::default().unwrap();
+    let website = s.create_website(String::from("d364af73-92c5-466a-85b7-709f8d6d915e"), data.url).unwrap();
     let response = CreateWebsiteOutput { 
-        id
+        id: website.id
     };
     Json(response)
 }
