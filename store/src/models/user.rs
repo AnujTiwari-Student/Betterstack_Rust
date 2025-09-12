@@ -5,7 +5,6 @@ use uuid::Uuid;
 #[derive(Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::users)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-
 pub struct User{
     pub id: String,
     pub username: String,
@@ -28,8 +27,17 @@ impl Store {
         Ok(result.id.to_string())
     }
 
-    pub fn signin_user(&self, username: String, password: String) -> bool{
+    pub fn signin_user(&mut self, username: String, password: String) -> Result<bool, diesel::result::Error>{
 
-        true
+        let user = users::table
+            .filter(users::username.eq(username))
+            .select(User::as_select())
+            .first(&mut self.conn)?;
+
+        if user.password != password {
+            return Ok(false)
+        }
+
+        Ok(true)
     }
 }
