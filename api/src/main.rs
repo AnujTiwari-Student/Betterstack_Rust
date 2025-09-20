@@ -3,15 +3,20 @@ use std::io::Error;
 use poem::{get, post, handler, listener::TcpListener, web::Path, web::Json, Route, Server};
 
 
-use crate::{request_input::{CreateWebsiteInput, LoginUserInput, CreateUserInput}, request_output::{CreateWebsiteOutput, CreateUserOutput, LoginUserOutput}};
+use crate::{request_input::{CreateUserInput, CreateWebsiteInput, LoginUserInput}, request_output::{CreateUserOutput, CreateWebsiteOutput, GetWebsiteOutput, LoginUserOutput}};
 
 use store::store::Store;
 pub mod request_input;
 pub mod request_output;
 
 #[handler]
-fn get_website(Path(website_id): Path<String>) -> String {
-    format!("website: {}", website_id)
+fn get_website(Path(website_id): Path<String>) -> Json<GetWebsiteOutput> {
+    let mut s = Store::default().unwrap();
+    let website = s.get_website(website_id).unwrap();
+    let response = GetWebsiteOutput { 
+        url: website.url
+    };
+    Json(response)
 }
 
 #[handler]
@@ -52,7 +57,9 @@ fn create_website(Json(data): Json<CreateWebsiteInput>) -> Json<CreateWebsiteOut
 async fn main() -> Result<(), Error> {
     let app = Route::new()
         .at("/status/:website_id", get(get_website))
-        .at("/website", post(create_website));
+        .at("/website", post(create_website))
+        .at("/signup", post(signup_user))
+        .at("/signin", post(signin_user));
     Server::new(TcpListener::bind("0.0.0.0:3001"))
       .run(app)
       .await
