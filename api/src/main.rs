@@ -1,65 +1,25 @@
-use std::io::Error;
+use std::{io::Error, sync::{Arc, Mutex}};
 
-use poem::{get, post, handler, listener::TcpListener, web::Path, web::Json, Route, Server};
+use poem::{get, listener::TcpListener, post, EndpointExt, Route, Server};
 
 
-use crate::{request_input::{CreateUserInput, CreateWebsiteInput, LoginUserInput}, request_output::{CreateUserOutput, CreateWebsiteOutput, GetWebsiteOutput, LoginUserOutput}};
+use crate::{routes::{users::{signin_user, signup_user}, websites::{create_website, get_website}}};
 
 use store::store::Store;
 pub mod request_input;
 pub mod request_output;
+pub mod routes;
 
-#[handler]
-fn get_website(Path(website_id): Path<String>) -> Json<GetWebsiteOutput> {
-    let mut s = Store::default().unwrap();
-    let website = s.get_website(website_id).unwrap();
-    let response = GetWebsiteOutput { 
-        url: website.url
-    };
-    Json(response)
-}
-
-#[handler]
-fn signin_user(Json(data): Json<LoginUserInput>) -> Json<LoginUserOutput> {
-    println!("Signing in user: {}", data.username);
-    let mut s = Store::default().unwrap();
-    let exists = s.signin_user(data.username, data.password).unwrap();
-    let response = LoginUserOutput { 
-        jwt: String::from("jwt")
-    };
-    Json(response)
-}
-
-#[handler]
-fn signup_user(Json(data): Json<CreateUserInput>) -> Json<CreateUserOutput> {
-    println!("Signing up user: {}", data.username);
-    let mut s = Store::default().unwrap();
-    let user_id = s.signup_user(data.username, data.password).unwrap();
-    let response = CreateUserOutput { 
-        id: user_id
-    };
-    Json(response)
-}
-
-
-#[handler]
-fn create_website(Json(data): Json<CreateWebsiteInput>) -> Json<CreateWebsiteOutput> {
-    println!("Creating website for url: {}", data.url);
-    let mut s = Store::default().unwrap();
-    let website = s.create_website(String::from("d364af73-92c5-466a-85b7-709f8d6d915e"), data.url).unwrap();
-    let response = CreateWebsiteOutput { 
-        id: website.id
-    };
-    Json(response)
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    let s = Arc::new(Mutex::new(Store::new().unwrap()));
     let app = Route::new()
         .at("/status/:website_id", get(get_website))
         .at("/website", post(create_website))
         .at("/signup", post(signup_user))
-        .at("/signin", post(signin_user));
+        .at("/signin", post(signin_user))
+        .data(s);
     Server::new(TcpListener::bind("0.0.0.0:3001"))
       .run(app)
       .await

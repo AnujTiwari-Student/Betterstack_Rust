@@ -18,9 +18,9 @@ pub struct Website{
 impl Store {
     pub fn create_website(&mut self, user_id: String, url: String) -> Result<Website, diesel::result::Error>{
         let w: Website = Website {
-            url: url,
+            url,
             id: Uuid::new_v4().to_string(),
-            user_id: user_id,
+            user_id,
             created_at: Utc::now().naive_utc(),
             updated_at: Utc::now().naive_utc(),
         };

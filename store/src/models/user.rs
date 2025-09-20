@@ -24,8 +24,8 @@ impl Store {
     ) -> Result<String, diesel::result::Error> {
         let u: User = User {
             id: Uuid::new_v4().to_string(),
-            username: username,
-            password: password,
+            username,
+            password,
         };
         let result = diesel::insert_into(users::table)
             .values(&u)
