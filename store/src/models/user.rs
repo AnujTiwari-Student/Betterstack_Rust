@@ -40,16 +40,22 @@ impl Store {
         &mut self,
         username: String,
         password: String,
-    ) -> Result<bool, diesel::result::Error> {
+    ) -> Result<String, diesel::result::Error> {
+
+        println!("Looking for username: '{}'", username);
+
         let user = users::table
             .filter(users::username.eq(username))
             .select(User::as_select())
             .first(&mut self.conn)?;
 
-        if user.password != password {
-            return Ok(false);
-        }
+        println!("Found user: {}", user.username);
 
-        Ok(true)
+        if user.password != password {
+            println!("Password mismatch");
+            return Err(diesel::result::Error::NotFound);
+        }
+        
+        Ok(user.id)
     }
 }
